@@ -113,13 +113,13 @@ const Index = () => {
         <div className="container relative z-10 py-24 md:py-32 pb-64 md:pb-80">
           <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
             <div className="inline-block px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-4 border border-white/20">
-              🇧🇦 Najveća baza knjigovođa u BiH
+              🇧🇦 Najveća baza računovođa u BiH
             </div>
             <h1 className="text-5xl md:text-7xl font-bold leading-tight tracking-tight">
-              Pronađite pouzdanog knjigovоđu u BiH
+              Pronađite pouzdanog računovođu u BiH
             </h1>
             <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto font-light">
-              Online baza certificiranih knjigovođa, računovođa i revizora širom Bosne i Hercegovine
+              Online baza certificiranih računovođa i revizora širom Bosne i Hercegovine
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <Button size="lg" variant="secondary" className="text-lg px-8 py-6 shadow-large" asChild>
