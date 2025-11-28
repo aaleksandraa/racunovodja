@@ -36,6 +36,18 @@ const Auth = () => {
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [isRateLimited, setIsRateLimited] = useState(false);
 
+  // Track URL parameter changes
+  useEffect(() => {
+    const modeParam = searchParams.get('mode');
+    if (modeParam === 'register') {
+      setMode('register');
+    } else if (modeParam === 'reset') {
+      setMode('reset');
+    } else {
+      setMode('login');
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
