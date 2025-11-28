@@ -8,7 +8,7 @@ import 'leaflet.markercluster';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MapPin, Navigation, Search } from 'lucide-react';
+import { MapPin, Navigation, Search, AlertCircle, Loader2 } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -31,17 +31,25 @@ interface Profile {
   }>;
 }
 
+// Default centar BiH
+const DEFAULT_CENTER = { lat: 43.9159, lng: 17.6791 };
+const DEFAULT_ZOOM = 8;
+const USER_LOCATION_ZOOM = 13;
+
 const HomepageNearbyMap = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerClusterGroupRef = useRef<L.MarkerClusterGroup | null>(null);
+  const userMarkerRef = useRef<L.Marker | null>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [locationError, setLocationError] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([]);
+  const [mapReady, setMapReady] = useState(false);
 
   // Fetch site settings
   useEffect(() => {
@@ -127,71 +135,103 @@ const HomepageNearbyMap = () => {
     setFilteredProfiles(filtered);
   }, [searchQuery, profiles]);
 
-  // Get user location
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-          setLoading(false);
-        },
-        () => {
-          setLocationError(true);
-          setLoading(false);
-        }
-      );
-    } else {
-      setLocationError(true);
-      setLoading(false);
+  // Request user location on button click
+  const requestUserLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Vaš browser ne podržava geolokaciju.');
+      return;
     }
-  }, []);
 
-  // Initialize map
+    setLocationLoading(true);
+    setLocationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const newLocation = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setUserLocation(newLocation);
+        setLocationLoading(false);
+        
+        // Pan map to user location
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setView([newLocation.lat, newLocation.lng], USER_LOCATION_ZOOM, {
+            animate: true,
+            duration: 1
+          });
+          
+          // Add or update user marker
+          if (userMarkerRef.current) {
+            userMarkerRef.current.setLatLng([newLocation.lat, newLocation.lng]);
+          } else {
+            const userIcon = L.divIcon({
+              className: 'custom-user-marker',
+              html: `
+                <div style="
+                  position: relative;
+                  width: 40px;
+                  height: 40px;
+                ">
+                  <div style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 20px;
+                    height: 20px;
+                    background: #3b82f6;
+                    border-radius: 50%;
+                    border: 3px solid white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                  "></div>
+                </div>
+              `,
+              iconSize: [40, 40],
+              iconAnchor: [20, 20],
+            });
+
+            userMarkerRef.current = L.marker([newLocation.lat, newLocation.lng], { icon: userIcon })
+              .addTo(mapInstanceRef.current)
+              .bindPopup('<strong>Vaša lokacija</strong>')
+              .openPopup();
+          }
+        }
+      },
+      (error) => {
+        setLocationLoading(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          setLocationError(
+            'Pristup lokaciji je blokiran. Kliknite na ikonu lokota/tune pored URL-a, dozvolite pristup lokaciji, pa osvježite stranicu.'
+          );
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          setLocationError('Lokacija nije dostupna. Provjerite da li je GPS uključen.');
+        } else if (error.code === error.TIMEOUT) {
+          setLocationError('Zahtjev za lokaciju je istekao. Pokušajte ponovo.');
+        } else {
+          setLocationError('Greška pri dobijanju lokacije. Pokušajte ponovo.');
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000 // 5 minuta cache
+      }
+    );
+  };
+
+  // Initialize map with default center (BiH)
   useEffect(() => {
-    if (!mapRef.current || !userLocation || profiles.length === 0) return;
+    if (!mapRef.current || profiles.length === 0) return;
 
     if (!mapInstanceRef.current) {
-      // Create map centered on user location with closer zoom (zoom 13 ≈ 5-10km radius view)
-      mapInstanceRef.current = L.map(mapRef.current).setView([userLocation.lat, userLocation.lng], 13);
+      // Create map centered on BiH
+      mapInstanceRef.current = L.map(mapRef.current).setView([DEFAULT_CENTER.lat, DEFAULT_CENTER.lng], DEFAULT_ZOOM);
 
       // Add tile layer
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(mapInstanceRef.current);
-
-      // Add user location marker
-      const userIcon = L.divIcon({
-        className: 'custom-user-marker',
-        html: `
-          <div style="
-            position: relative;
-            width: 40px;
-            height: 40px;
-          ">
-            <div style="
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              width: 20px;
-              height: 20px;
-              background: #3b82f6;
-              border-radius: 50%;
-              border: 3px solid white;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            "></div>
-          </div>
-        `,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
-      });
-
-      L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
-        .addTo(mapInstanceRef.current)
-        .bindPopup('<strong>Vaša lokacija</strong>');
 
       // Initialize marker cluster group
       markerClusterGroupRef.current = (L as any).markerClusterGroup({
@@ -202,6 +242,9 @@ const HomepageNearbyMap = () => {
         maxClusterRadius: 80,
       });
       mapInstanceRef.current.addLayer(markerClusterGroupRef.current);
+      
+      setMapReady(true);
+      setLoading(false);
     }
 
     // Clear existing markers from cluster group
@@ -325,9 +368,10 @@ const HomepageNearbyMap = () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
+        userMarkerRef.current = null;
       }
     };
-  }, [userLocation, filteredProfiles]);
+  }, [filteredProfiles, profiles]);
 
   if (loading) {
     return (
@@ -335,35 +379,7 @@ const HomepageNearbyMap = () => {
         <div className="container">
           <div className="text-center py-20">
             <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent" />
-            <p className="mt-4 text-muted-foreground">Učitavanje lokacije...</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (locationError) {
-    return (
-      <section className="py-20 md:py-24 bg-muted/30">
-        <div className="container">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <div className="inline-block px-4 py-1.5 bg-primary/10 rounded-full text-sm font-semibold text-primary mb-6">
-              Mapa
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Profesionalci u vašoj blizini</h2>
-          </div>
-          <div className="text-center py-16 bg-card rounded-3xl border border-border/50">
-            <div className="max-w-md mx-auto space-y-4">
-              <MapPin className="h-16 w-16 mx-auto text-muted-foreground" />
-              <p className="text-xl font-semibold">Omogućite pristup lokaciji</p>
-              <p className="text-muted-foreground">
-                Da bismo vam prikazali profesionalce u vašoj blizini, potreban nam je pristup vašoj lokaciji.
-              </p>
-              <Button onClick={() => window.location.reload()} className="mt-4">
-                <Navigation className="mr-2 h-4 w-4" />
-                Pokušaj ponovo
-              </Button>
-            </div>
+            <p className="mt-4 text-muted-foreground">Učitavanje mape...</p>
           </div>
         </div>
       </section>
@@ -381,31 +397,72 @@ const HomepageNearbyMap = () => {
           <div className="inline-block px-4 py-1.5 bg-primary/10 rounded-full text-sm font-semibold text-primary mb-6">
             Mapa
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Profesionalci u vašoj blizini</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Profesionalci na mapi</h2>
           <p className="text-lg md:text-xl text-muted-foreground font-light">
-            Plavi pin prikazuje vašu trenutnu lokaciju
+            {userLocation 
+              ? 'Plavi pin prikazuje vašu trenutnu lokaciju' 
+              : 'Kliknite dugme ispod da vidite profesionalce u vašoj blizini'}
           </p>
         </div>
 
         <div className="max-w-6xl mx-auto">
-          {showMapSearch && (
-            <div className="mb-4 max-w-md mx-auto">
-              <div className="relative">
+          {/* Location button and search */}
+          <div className="mb-4 flex flex-col sm:flex-row gap-4 items-center justify-center">
+            <Button 
+              onClick={requestUserLocation}
+              disabled={locationLoading}
+              variant={userLocation ? "outline" : "default"}
+              className="font-semibold"
+            >
+              {locationLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Tražim lokaciju...
+                </>
+              ) : userLocation ? (
+                <>
+                  <Navigation className="mr-2 h-4 w-4" />
+                  Osvježi lokaciju
+                </>
+              ) : (
+                <>
+                  <Navigation className="mr-2 h-4 w-4" />
+                  Prikaži blizu mene
+                </>
+              )}
+            </Button>
+            
+            {showMapSearch && (
+              <div className="relative w-full sm:w-auto sm:min-w-[300px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Pretražite po imenu profesionalca..."
+                  placeholder="Pretražite po imenu..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
-              {searchQuery && (
-                <p className="text-sm text-muted-foreground mt-2 text-center">
-                  Prikazano {filteredProfiles.length} od {profiles.length} profesionalaca
-                </p>
-              )}
+            )}
+          </div>
+          
+          {/* Location error message */}
+          {locationError && (
+            <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg max-w-2xl mx-auto">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-destructive font-medium">Pristup lokaciji nije moguć</p>
+                  <p className="text-sm text-muted-foreground mt-1">{locationError}</p>
+                </div>
+              </div>
             </div>
+          )}
+
+          {searchQuery && (
+            <p className="text-sm text-muted-foreground mb-4 text-center">
+              Prikazano {filteredProfiles.length} od {profiles.length} profesionalaca
+            </p>
           )}
           
           <div 
