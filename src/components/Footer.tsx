@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="space-y-3">
             <h3 className="font-semibold text-lg">O nama</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Online direktorij računovođa, knjigovođa i revizora u Bosni i Hercegovini.
+              Najveća baza računovođa i revizora u Bosni i Hercegovini. Pretražite po lokaciji, uslugama i dostupnosti. Brz i siguran kontakt sa profesionalcima.
             </p>
           </div>
 
@@ -83,7 +83,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="border-t mt-8 pt-6 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Direktorij profesionalaca. Sva prava zadržana.
+            © {new Date().getFullYear()} Online baza računovođa. Sva prava zadržana.
           </p>
         </div>
       </div>

@@ -313,7 +313,7 @@ const Index = () => {
             <div className="inline-block px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium border border-white/20">
               Za profesionalce
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold leading-tight">Jeste li knjigovođa?</h2>
+            <h2 className="text-4xl md:text-5xl font-bold leading-tight">Jeste li računovođa?</h2>
             <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto font-light">
               Pridružite se našoj platformi i povećajte svoju vidljivost. Besplatna registracija za sve profesionalce!
             </p>
