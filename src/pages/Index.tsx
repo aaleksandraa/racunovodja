@@ -95,8 +95,8 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO 
-        title="Pronađite certificiranog knjigovođu u BiH"
-        description="Najveća baza knjigovođa, računovođa i revizora u Bosni i Hercegovini. Pretražite po lokaciji, uslugama i dostupnosti. Brz i siguran kontakt sa profesionalcima."
+        title="Pronađite certificiranog računovođu u BiH"
+        description="Najveća baza računovođa i revizora u Bosni i Hercegovini. Pretražite po lokaciji, uslugama i dostupnosti. Brz i siguran kontakt sa profesionalcima."
         keywords="knjigovođa, računovođa, revizor, bosna i hercegovina, bih, računovodstvo, knjigovodstvene usluge"
         url="/"
       />
