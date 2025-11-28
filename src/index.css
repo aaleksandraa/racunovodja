@@ -1,0 +1,226 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import 'leaflet/dist/leaflet.css';
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 13% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 18%;
+
+    --primary: 240 5% 34%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 5% 90%;
+    --secondary-foreground: 240 5% 20%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 220 13% 46%;
+
+    --accent: 240 5% 93%;
+    --accent-foreground: 240 5% 34%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 240 5% 34%;
+
+    --radius: 0.75rem;
+    
+    --hero-gradient: linear-gradient(135deg, hsl(240 5% 34%) 0%, hsl(240 5% 50%) 100%);
+    --success-gradient: linear-gradient(135deg, hsl(240 5% 40%) 0%, hsl(240 5% 55%) 100%);
+    --shadow-soft: 0 4px 6px -1px hsl(220 13% 18% / 0.1), 0 2px 4px -1px hsl(220 13% 18% / 0.06);
+    --shadow-medium: 0 10px 15px -3px hsl(220 13% 18% / 0.1), 0 4px 6px -2px hsl(220 13% 18% / 0.05);
+    --shadow-large: 0 20px 25px -5px hsl(220 13% 18% / 0.1), 0 10px 10px -5px hsl(220 13% 18% / 0.04);
+    
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 240 5% 34%;
+  }
+
+  .dark {
+    --background: 220 18% 12%;
+    --foreground: 210 40% 98%;
+
+    --card: 220 15% 16%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 220 15% 16%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 240 5% 64%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 5% 25%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 240 5% 25%;
+    --accent-foreground: 240 5% 85%;
+
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217.2 32.6% 25%;
+    --input: 217.2 32.6% 25%;
+    --ring: 240 5% 64%;
+    
+    --hero-gradient: linear-gradient(135deg, hsl(240 5% 45%) 0%, hsl(240 5% 65%) 100%);
+    --success-gradient: linear-gradient(135deg, hsl(240 5% 40%) 0%, hsl(240 5% 55%) 100%);
+    --shadow-soft: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
+    --shadow-medium: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -2px hsl(0 0% 0% / 0.2);
+    --shadow-large: 0 20px 25px -5px hsl(0 0% 0% / 0.3), 0 10px 10px -5px hsl(0 0% 0% / 0.2);
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 240 5% 64%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 240 5% 64%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Animated gradient for hero section */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* Custom map marker styles */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid hsl(214 32% 91%) !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+}
+
+.leaflet-popup-tip {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background: hsl(220 15% 16%) !important;
+  border-color: hsl(217.2 32.6% 25%) !important;
+}
+
+.dark .leaflet-popup-tip {
+  background: hsl(220 15% 16%) !important;
+}
+
+/* Custom marker cluster styles */
+.marker-cluster {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.marker-cluster-custom {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: white;
+  background: linear-gradient(135deg, hsl(222.2 47.4% 11.2%) 0%, hsl(217.2 32.6% 17.5%) 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 3px solid white;
+  transition: all 0.2s ease;
+}
+
+.marker-cluster-custom:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.marker-cluster-small .marker-cluster-custom {
+  background: linear-gradient(135deg, hsl(222.2 47.4% 11.2%) 0%, hsl(217.2 32.6% 17.5%) 100%);
+}
+
+.marker-cluster-medium .marker-cluster-custom {
+  width: 50px;
+  height: 50px;
+  font-size: 16px;
+  background: linear-gradient(135deg, hsl(217.2 32.6% 17.5%) 0%, hsl(222.2 47.4% 25%) 100%);
+}
+
+.marker-cluster-large .marker-cluster-custom {
+  width: 60px;
+  height: 60px;
+  font-size: 18px;
+  background: linear-gradient(135deg, hsl(222.2 47.4% 25%) 0%, hsl(217.2 32.6% 35%) 100%);
+}
+
+/* Dark mode cluster styles */
+.dark .marker-cluster-custom {
+  background: linear-gradient(135deg, hsl(240 5% 45%) 0%, hsl(240 5% 65%) 100%);
+}
+
+.dark .marker-cluster-medium .marker-cluster-custom {
+  background: linear-gradient(135deg, hsl(240 5% 55%) 0%, hsl(240 5% 75%) 100%);
+}
+
+.dark .marker-cluster-large .marker-cluster-custom {
+  background: linear-gradient(135deg, hsl(240 5% 65%) 0%, hsl(240 5% 85%) 100%);
+}

@@ -1,0 +1,10 @@
+project_id = "puamysvniaiggrcunnod"
+
+[functions.sitemap]
+verify_jwt = false
+
+[functions.rss]
+verify_jwt = false
+
+[functions.generate-og-image]
+verify_jwt = true
