@@ -110,27 +110,27 @@ const Index = () => {
         
         <Header user={user} />
         
-        <div className="container relative z-10 py-24 md:py-32 pb-64 md:pb-80">
-          <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
-            <div className="inline-block px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium mb-4 border border-white/20">
+        <div className="container relative z-10 py-12 md:py-24 pb-64 md:pb-80">
+          <div className="max-w-4xl mx-auto text-center space-y-6 md:space-y-8 animate-fade-in">
+            <div className="inline-block px-3 py-1.5 md:px-4 md:py-2 bg-white/10 backdrop-blur-sm rounded-full text-xs md:text-sm font-medium mb-2 md:mb-4 border border-white/20">
               🇧🇦 Najveća baza računovođa u BiH
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold leading-tight tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold leading-tight tracking-tight">
               Pronađite pouzdanog računovođu u BiH
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto font-light">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/90 max-w-2xl mx-auto font-light px-4 md:px-0">
               Online baza certificiranih računovođa i revizora širom Bosne i Hercegovine
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-              <Button size="lg" variant="secondary" className="text-lg px-8 py-6 shadow-large" asChild>
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mt-6 md:mt-8 px-4 md:px-0">
+              <Button size="lg" variant="secondary" className="text-base md:text-lg px-6 md:px-8 py-5 md:py-6 shadow-large" asChild>
                 <a href="#search">
-                  <Search className="mr-2 h-5 w-5" />
+                  <Search className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                   Započni pretragu
                 </a>
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6 bg-white/10 hover:bg-white/20 border-white/30 text-white backdrop-blur-sm" asChild>
+              <Button size="lg" variant="outline" className="text-base md:text-lg px-6 md:px-8 py-5 md:py-6 bg-white/10 hover:bg-white/20 border-white/30 text-white backdrop-blur-sm" asChild>
                 <a href="#usluge">
-                  <Briefcase className="mr-2 h-5 w-5" />
+                  <Briefcase className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                   Pregledaj usluge
                 </a>
               </Button>
