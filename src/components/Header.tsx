@@ -92,7 +92,7 @@ const Header = ({ user }: HeaderProps) => {
           <Link to="/" className="flex items-center gap-3 group transition-all">
             <div className={`h-9 w-9 md:h-10 md:w-10 rounded-xl shadow-md group-hover:shadow-lg transition-all ${isHomePage ? 'bg-white/20' : 'bg-primary/20'}`} />
             <span className={`text-lg md:text-xl font-bold ${isHomePage ? 'text-white' : 'text-foreground'}`}>
-              Knjigovođe BiH
+              Moj računovođa
             </span>
           </Link>
 
