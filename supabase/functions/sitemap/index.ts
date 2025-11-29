@@ -30,10 +30,10 @@ Deno.serve(async (req) => {
       .select('id, updated_at')
       .is('parent_id', null);
 
-    // Fetch all cities
+    // Fetch all cities with slug
     const { data: cities } = await supabase
       .from('cities')
-      .select('id, name, postal_code, entities(code)');
+      .select('id, name, postal_code, slug, entities(code)');
 
     // Fetch all published blog posts
     const { data: blogPosts } = await supabase
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
 
     console.log('Fetched profile services for service-city combinations');
 
-    const baseUrl = 'https://knjigovodje.ba';
+    const baseUrl = 'https://racunovodja.online';
     const now = new Date().toISOString().split('T')[0];
 
     // Build sitemap XML
@@ -64,10 +64,10 @@ Deno.serve(async (req) => {
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>${baseUrl}/search</loc>
+    <loc>${baseUrl}/pretraga</loc>
     <lastmod>${now}</lastmod>
     <changefreq>daily</changefreq>
-    <priority>0.8</priority>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>${baseUrl}/mapa</loc>
@@ -110,15 +110,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Add city pages
+    // Add city pages - use slug for SEO-friendly URLs
     if (cities) {
       for (const city of cities) {
+        const citySlug = (city as any).slug || city.postal_code;
         sitemap += `
   <url>
-    <loc>${baseUrl}/lokacije/${city.postal_code}</loc>
+    <loc>${baseUrl}/grad/${citySlug}</loc>
     <lastmod>${now}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>`;
       }
     }
@@ -147,9 +148,10 @@ Deno.serve(async (req) => {
         for (const cityId of cityIds) {
           const city = cities.find((c: any) => c.id === cityId);
           if (city) {
+            const citySlug = (city as any).slug || city.postal_code;
             sitemap += `
   <url>
-    <loc>${baseUrl}/usluge/${serviceId}/${city.postal_code}</loc>
+    <loc>${baseUrl}/usluge/${serviceId}/${citySlug}</loc>
     <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

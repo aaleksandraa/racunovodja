@@ -63,6 +63,62 @@ const Index = () => {
     },
   });
 
+  // Fetch popular cities with accountant count
+  const { data: popularCities = [] } = useQuery({
+    queryKey: ["popular-cities"],
+    queryFn: async () => {
+      // Get cities that have active profiles
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('business_city_id')
+        .eq('is_active', true)
+        .eq('registration_completed', true);
+      
+      if (!profiles) return [];
+      
+      // Count profiles per city
+      const cityCount = profiles.reduce((acc: Record<string, number>, p) => {
+        if (p.business_city_id) {
+          acc[p.business_city_id] = (acc[p.business_city_id] || 0) + 1;
+        }
+        return acc;
+      }, {});
+      
+      // Get top cities
+      const topCityIds = Object.entries(cityCount)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
+        .slice(0, 8)
+        .map(([id]) => id);
+      
+      if (topCityIds.length === 0) {
+        // Fallback to major cities
+        const { data: majorCities } = await supabase
+          .from('cities')
+          .select('id, name, postal_code')
+          .in('name', ['Sarajevo', 'Banja Luka', 'Tuzla', 'Zenica', 'Mostar', 'Bijeljina', 'Prijedor', 'Doboj'])
+          .limit(8);
+        return (majorCities || []).map((c: any) => ({ 
+          id: c.id,
+          name: c.name,
+          postal_code: c.postal_code,
+          profileCount: 0 
+        }));
+      }
+      
+      const { data: cities } = await supabase
+        .from('cities')
+        .select('id, name, postal_code')
+        .in('id', topCityIds);
+      
+      return (cities || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        postal_code: c.postal_code,
+        profileCount: cityCount[c.id] || 0
+      })).sort((a: any, b: any) => b.profileCount - a.profileCount);
+    },
+  });
+
   useEffect(() => {
     // Generate random darker gradient on mount for better text readability
     const gradients = [
@@ -301,6 +357,66 @@ const Index = () => {
 
       {/* Blog Section */}
       <BlogSection />
+
+      {/* Popular Cities Section for SEO */}
+      {popularCities.length > 0 && (
+        <section className="py-20 md:py-24 bg-muted/30">
+          <div className="container">
+            <div className="max-w-3xl mx-auto text-center mb-12">
+              <div className="inline-block px-4 py-1.5 bg-primary/10 rounded-full text-sm font-semibold text-primary mb-6">
+                Lokacije
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Računovođe po gradovima</h2>
+              <p className="text-lg md:text-xl text-muted-foreground font-light">
+                Pronađite računovođu u vašem gradu
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              {popularCities.map((city: any) => {
+                // Generate slug from city name
+                const citySlug = city.name.toLowerCase()
+                  .replace(/č/g, 'c').replace(/ć/g, 'c')
+                  .replace(/đ/g, 'dj').replace(/š/g, 's').replace(/ž/g, 'z')
+                  .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                
+                return (
+                  <Link 
+                    key={city.id} 
+                    to={`/grad/${citySlug}`}
+                    className="group"
+                  >
+                    <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/50">
+                      <CardContent className="p-4 text-center">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <MapPin className="h-4 w-4 text-primary" />
+                          <span className="font-semibold group-hover:text-primary transition-colors">
+                            {city.name}
+                          </span>
+                        </div>
+                        {city.profileCount > 0 && (
+                          <span className="text-sm text-muted-foreground">
+                            {city.profileCount} računovođa
+                          </span>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+            
+            <div className="text-center mt-8">
+              <Link to="/pretraga">
+                <Button variant="outline" size="lg">
+                  Pregledaj sve gradove
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section 

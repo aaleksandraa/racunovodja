@@ -32,21 +32,16 @@ const CityPage = () => {
   const { data: city, isLoading: cityLoading } = useQuery({
     queryKey: ["city", citySlug],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Search by slug or postal_code
+      const { data: cityData, error: cityError } = await supabase
         .from("cities")
-        .select(`
-          id,
-          name,
-          postal_code,
-          entity_id,
-          entities(name, code)
-        `)
-        .eq("postal_code", citySlug)
+        .select("id, name, postal_code, entity_id, entities(name, code)")
+        .or(`slug.eq.${citySlug},postal_code.eq.${citySlug}`)
         .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("City not found");
-      return data;
+      
+      if (cityError) throw cityError;
+      if (!cityData) throw new Error("City not found");
+      return cityData;
     },
   });
 
@@ -211,13 +206,15 @@ const CityPage = () => {
     );
   }
 
-  const entityName = (city as any).entities?.name || '';
+  const entityName = (city as any).entities?.name || 'Bosna i Hercegovina';
   const cityName = city.name;
   const profileCount = profiles?.length || 0;
 
-  const seoTitle = `Knjigovođe u ${cityName}`;
-  const seoDescription = `Pronađite certificiranog knjigovođu u ${cityName}, ${entityName}. Lista od ${profileCount} računovođa i revizora u ${cityName} sa kontakt podacima i radnim vremenom.`;
-  const seoKeywords = `knjigovođa ${cityName}, računovođa ${cityName}, knjigovodstvene usluge ${cityName}, revizor ${cityName}, knjigovođe ${entityName}`;
+  // SEO optimized content
+  const currentYear = new Date().getFullYear();
+  const seoTitle = `Računovođe ${cityName} - ${profileCount > 0 ? profileCount : 'Lista'} Knjigovođa i Revizora ${currentYear}`;
+  const seoDescription = `Pronađite najboljeg računovođu u ${cityName} ✓ Lista ${profileCount > 0 ? profileCount + ' verificiranih' : ''} knjigovođa i revizora u ${cityName}, ${entityName}. Uporedite cijene, usluge i recenzije. Besplatni kontakt podaci.`;
+  const seoKeywords = `računovođa ${cityName}, knjigovođa ${cityName}, knjigovodstvene usluge ${cityName}, računovodstvene usluge ${cityName}, revizor ${cityName}, porezni savjetnik ${cityName}, ${cityName} računovođa, ${cityName} knjigovođa, knjigovodstvo ${cityName}, ${entityName} računovođa`;
 
   return (
     <>
@@ -225,11 +222,12 @@ const CityPage = () => {
         title={seoTitle}
         description={seoDescription}
         keywords={seoKeywords}
-        url={`/lokacije/${city.postal_code}`}
+        url={`/grad/${citySlug}`}
       />
       <CityStructuredData 
         city={city}
         profiles={profiles || []}
+        citySlug={citySlug}
       />
       
       <div className="min-h-screen bg-background">
@@ -238,19 +236,33 @@ const CityPage = () => {
         {/* Hero Section */}
         <section className="bg-gradient-to-b from-muted/50 to-background py-12 px-4">
           <div className="container mx-auto max-w-6xl">
+            {/* Breadcrumbs for SEO */}
+            <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-4" aria-label="Breadcrumb">
+              <a href="/" className="hover:text-primary">Početna</a>
+              <span>/</span>
+              <a href="/pretraga" className="hover:text-primary">Računovođe</a>
+              <span>/</span>
+              <span className="text-foreground">{cityName}</span>
+            </nav>
             <div className="flex items-center gap-2 text-muted-foreground mb-4">
               <MapPin className="h-4 w-4" />
-              <span className="text-sm">{entityName}</span>
+              <span className="text-sm">{entityName}, Bosna i Hercegovina</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Knjigovođe u {cityName}
+              Računovođe i Knjigovođe u gradu {cityName}
             </h1>
             <p className="text-lg text-muted-foreground mb-6">
               {profileCount === 0 
-                ? `Trenutno nema registriranih knjigovođa u gradu ${cityName}.`
-                : `Pronađeno ${profileCount} certificirani${profileCount === 1 ? '' : 'h'} knjigovođa u gradu ${cityName}.`
+                ? `Tražite računovođu u ${cityName}? Budite prvi koji će se registrovati kao računovođa u ${cityName}.`
+                : `Pronađite pouzdanog računovođu u ${cityName}. Imamo ${profileCount} verificiranih računovođa i knjigovođa u gradu ${cityName} koji nude knjigovodstvene, računovodstvene i porezne usluge.`
               }
             </p>
+            {/* Additional SEO text */}
+            {profileCount > 0 && (
+              <p className="text-muted-foreground">
+                Uporedite cijene i usluge, pročitajte recenzije i kontaktirajte direktno računovođe u {cityName}.
+              </p>
+            )}
           </div>
         </section>
 
@@ -267,7 +279,7 @@ const CityPage = () => {
                   <Card 
                     key={service.id}
                     className="hover:shadow-lg transition-all cursor-pointer"
-                    onClick={() => navigate(`/usluge/${service.id}/${city.postal_code}`)}
+                    onClick={() => navigate(`/usluge/${service.id}/${citySlug}`)}
                   >
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-2">
@@ -293,7 +305,7 @@ const CityPage = () => {
         {profiles && profiles.length > 0 && (
           <section className="py-12 px-4">
             <div className="container mx-auto max-w-6xl">
-              <h2 className="text-3xl font-bold mb-6">Svi knjigovođe u {cityName}</h2>
+              <h2 className="text-3xl font-bold mb-6">Svi Računovođe i Knjigovođe u {cityName}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                 {profiles.map((profile) => (
                   <ProfileCard key={profile.id} profile={profile} />
@@ -319,7 +331,7 @@ const CityPage = () => {
                 Trenutno nema registriranih profesionalaca u ovom gradu.
               </p>
               <button
-                onClick={() => navigate('/search')}
+                onClick={() => navigate('/pretraga')}
                 className="text-primary hover:underline"
               >
                 Pretražite druge lokacije →
@@ -327,6 +339,36 @@ const CityPage = () => {
             </div>
           </section>
         )}
+
+        {/* FAQ Section for SEO */}
+        <section className="py-12 px-4 bg-muted/20">
+          <div className="container mx-auto max-w-6xl">
+            <h2 className="text-2xl font-bold mb-8">Često Postavljana Pitanja - Računovođe {cityName}</h2>
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">Kako pronaći dobrog računovođu u {cityName}?</h3>
+                <p className="text-muted-foreground">
+                  Na našoj platformi možete pregledati profile {profileCount > 0 ? profileCount : 'svih registrovanih'} računovođa u {cityName}, 
+                  uporediti njihove usluge, cijene i recenzije, te ih direktno kontaktirati. Svi računovođe su verificirani profesionalci.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-2">Koliko košta računovođa u {cityName}?</h3>
+                <p className="text-muted-foreground">
+                  Cijena knjigovodstvenih usluga u {cityName} varira ovisno o vrsti usluge i veličini posla. 
+                  Kontaktirajte više računovođa za besplatnu procjenu i uporedite ponude.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-2">Koje usluge nude računovođe u {cityName}?</h3>
+                <p className="text-muted-foreground">
+                  Računovođe u {cityName} nude širok spektar usluga uključujući: vođenje poslovnih knjiga, 
+                  obračun plata, porezno savjetovanje, izrada finansijskih izvještaja, revizija i konsalting.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </>
   );

@@ -49,7 +49,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/mapa" element={<MapView />} />
-            <Route path="/search" element={<Search />} />
+            <Route path="/pretraga" element={<Search />} />
+            <Route path="/search" element={<Navigate to="/pretraga" replace />} />
             <Route path="/usluge/:categoryId" element={<ServiceCategory />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
@@ -80,6 +81,7 @@ const App = () => (
             />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/grad/:citySlug" element={<CityPage />} />
             <Route path="/lokacije/:citySlug" element={<CityPage />} />
             <Route path="/usluge/:serviceSlug/:citySlug" element={<ServiceCityPage />} />
             <Route path="/sitemap.xml" element={<SitemapRedirect />} />
