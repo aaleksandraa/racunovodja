@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://puamysvniaiggrcunnod.supabase.co/functions/v1/sitemap"
+    },
+    {
+      "source": "/rss.xml",
+      "destination": "https://puamysvniaiggrcunnod.supabase.co/functions/v1/rss"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

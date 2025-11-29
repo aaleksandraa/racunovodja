@@ -25,16 +25,16 @@ Deno.serve(async (req) => {
       .order('published_at', { ascending: false })
       .limit(50);
 
-    const baseUrl = 'https://knjigovodje.ba';
+    const baseUrl = 'https://racunovodja.online';
     const now = new Date().toUTCString();
 
     // Build RSS XML
     let rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Knjigovođe BiH Blog</title>
+    <title>Računovođa Online Blog</title>
     <link>${baseUrl}/blog</link>
-    <description>Najnoviji članci i savjeti o računovodstvu, knjigovodstvu i poreskim propisima u Bosni i Hercegovini</description>
+    <description>Najnoviji članci i savjeti o računovodstvu i poreskim propisima u Bosni i Hercegovini</description>
     <language>bs</language>
     <lastBuildDate>${now}</lastBuildDate>
     <atom:link href="${baseUrl}/rss.xml" rel="self" type="application/rss+xml" />`;
