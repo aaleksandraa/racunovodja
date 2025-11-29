@@ -1,9 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- This is a placeholder. The actual sitemap is dynamically generated at /sitemap route -->
+  <!-- Dinamicki sitemap se generira na: https://puamysvniaiggrcunnod.supabase.co/functions/v1/sitemap -->
+  <!-- Ovaj fajl je fallback placeholder -->
   <url>
-    <loc>https://knjigovodje.ba/</loc>
+    <loc>https://racunovodja.online/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://racunovodja.online/pretraga</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://racunovodja.online/mapa</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://racunovodja.online/blog</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

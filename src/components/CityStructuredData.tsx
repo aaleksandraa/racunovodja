@@ -23,7 +23,34 @@ interface CityStructuredDataProps {
 export const CityStructuredData = ({ city, profiles, citySlug }: CityStructuredDataProps) => {
   const baseUrl = 'https://racunovodja.online';
   const entityName = city.entities?.name || 'Bosna i Hercegovina';
+  const pageUrl = `${baseUrl}/grad/${citySlug || city.postal_code}`;
   
+  // WebPage schema
+  const webPageData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": pageUrl,
+    "url": pageUrl,
+    "name": `Računovođa ${city.name} | Knjigovođa ${city.name}`,
+    "description": `Pronađite računovođu ili knjigovođu u ${city.name}. Lista od ${profiles.length} verificiranih profesionalaca.`,
+    "inLanguage": "bs-BA",
+    "isPartOf": {
+      "@type": "WebSite",
+      "@id": baseUrl,
+      "url": baseUrl,
+      "name": "Računovođa Online",
+      "description": "Najveća baza računovođa i knjigovođa u Bosni i Hercegovini"
+    },
+    "about": {
+      "@type": "City",
+      "name": city.name,
+      "containedInPlace": {
+        "@type": "AdministrativeArea",
+        "name": entityName
+      }
+    }
+  };
+
   // Main ItemList for profiles
   const itemListData = {
     "@context": "https://schema.org",
@@ -119,6 +146,9 @@ export const CityStructuredData = ({ city, profiles, citySlug }: CityStructuredD
 
   return (
     <Helmet>
+      <script type="application/ld+json">
+        {JSON.stringify(webPageData)}
+      </script>
       <script type="application/ld+json">
         {JSON.stringify(itemListData)}
       </script>

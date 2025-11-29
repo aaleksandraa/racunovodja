@@ -303,9 +303,9 @@ const CityPage = () => {
 
   // SEO optimized content
   const currentYear = new Date().getFullYear();
-  const seoTitle = `Računovođe ${cityName} - ${profileCount > 0 ? profileCount : 'Lista'} Knjigovođa i Revizora ${currentYear}`;
-  const seoDescription = `Pronađite najboljeg računovođu u ${cityName} ✓ Lista ${profileCount > 0 ? profileCount + ' verificiranih' : ''} knjigovođa i revizora u ${cityName}, ${entityName}. Uporedite cijene, usluge i recenzije. Besplatni kontakt podaci.`;
-  const seoKeywords = `računovođa ${cityName}, knjigovođa ${cityName}, knjigovodstvene usluge ${cityName}, računovodstvene usluge ${cityName}, revizor ${cityName}, porezni savjetnik ${cityName}, ${cityName} računovođa, ${cityName} knjigovođa, knjigovodstvo ${cityName}, ${entityName} računovođa`;
+  const seoTitle = `Računovođa ${cityName} | Knjigovođa ${cityName} - ${profileCount > 0 ? profileCount + ' Verificiranih' : 'Lista'} ${currentYear}`;
+  const seoDescription = `Tražite računovođu u ${cityName}? ✓ Lista ${profileCount > 0 ? profileCount + ' verificiranih' : ''} računovođa, knjigovođa i revizora u ${cityName}. Besplatni kontakt podaci, uporedite cijene i usluge. Pronađite najboljeg knjigovođu u ${cityName}, ${entityName}.`;
+  const seoKeywords = `računovođa ${cityName}, knjigovođa ${cityName}, ${cityName} računovođa, ${cityName} knjigovođa, knjigovodstvene usluge ${cityName}, računovodstvene usluge ${cityName}, revizor ${cityName}, porezni savjetnik ${cityName}, knjigovodstvo ${cityName}, ${entityName} računovođa, računovođe ${cityName}, knjigovođe ${cityName}`;
 
   return (
     <>

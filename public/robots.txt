@@ -13,8 +13,8 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://knjigovodje.ba/sitemap.xml
+Sitemap: https://racunovodja.online/sitemap.xml
 
 # RSS Feed
-https://knjigovodje.ba/rss.xml
+https://racunovodja.online/rss.xml
 
