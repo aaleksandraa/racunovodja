@@ -11,21 +11,41 @@ const AuthCallback = () => {
   const [message, setMessage] = useState('Obrada autentifikacije...');
 
   useEffect(() => {
-    // Check the URL hash immediately
+    // Check the URL for auth callback parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code'); // PKCE flow uses code parameter
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
     const fullHash = window.location.hash;
+    
     console.log('AuthCallback - Full URL:', window.location.href);
+    console.log('AuthCallback - Code param:', code);
     console.log('AuthCallback - URL hash:', fullHash);
     
-    // If there's an access_token in the URL, this is coming from an email link
+    // Check for hash-based tokens (older flow) or code parameter (PKCE flow)
     const hasAccessToken = fullHash.includes('access_token=');
-    const isPasswordRecovery = fullHash.toLowerCase().includes('type=recovery');
+    const hasCode = !!code;
+    const isPasswordRecovery = fullHash.toLowerCase().includes('type=recovery') || 
+                               urlParams.get('type') === 'recovery';
     
-    // Any callback with access_token that isn't password recovery is email confirmation
-    const isEmailConfirmation = hasAccessToken && !isPasswordRecovery;
+    // Any callback with code or access_token that isn't password recovery is email confirmation
+    const isEmailConfirmation = (hasAccessToken || hasCode) && !isPasswordRecovery;
     
+    console.log('AuthCallback - Has code:', hasCode);
     console.log('AuthCallback - Has access token:', hasAccessToken);
     console.log('AuthCallback - Is password recovery:', isPasswordRecovery);
     console.log('AuthCallback - Is email confirmation:', isEmailConfirmation);
+    
+    // Handle errors first
+    if (error) {
+      setStatus('error');
+      setMessage(errorDescription || 'Došlo je do greške prilikom autentifikacije.');
+      setTimeout(() => {
+        navigate('/auth', { replace: true });
+      }, 3000);
+      return;
+    }
     
     // Function to handle email confirmation
     const handleEmailConfirmation = async () => {
@@ -43,21 +63,46 @@ const AuthCallback = () => {
       }, 2000);
     };
     
-    // If this looks like email confirmation, process it
-    if (isEmailConfirmation) {
-      // Give Supabase a moment to process the hash tokens, then check session
-      const checkAndHandle = async () => {
-        // Small delay for Supabase to process
-        await new Promise(resolve => setTimeout(resolve, 300));
+    // If we have a code, we need to exchange it for a session (PKCE flow)
+    if (hasCode && isEmailConfirmation) {
+      const exchangeCode = async () => {
+        console.log('Exchanging code for session...');
         
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Session check:', session?.user?.email);
+        // Supabase client automatically handles the code exchange when we call getSession
+        // or when we use exchangeCodeForSession
+        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
         
-        if (session?.user) {
+        console.log('Code exchange result:', data?.user?.email, exchangeError);
+        
+        if (exchangeError) {
+          console.error('Code exchange error:', exchangeError);
+          setStatus('error');
+          setMessage('Greška pri verifikaciji: ' + exchangeError.message);
+          setTimeout(() => {
+            navigate('/auth', { replace: true });
+          }, 3000);
+          return;
+        }
+        
+        if (data?.session) {
           handleEmailConfirmation();
         }
       };
       
+      exchangeCode();
+      return; // Don't set up auth listener if we're handling PKCE
+    }
+    
+    // For hash-based flow, check session
+    if (hasAccessToken && isEmailConfirmation) {
+      const checkAndHandle = async () => {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Session check:', session?.user?.email);
+        if (session?.user) {
+          handleEmailConfirmation();
+        }
+      };
       checkAndHandle();
     }
     
@@ -90,19 +135,6 @@ const AuthCallback = () => {
         // Already handled above
       }
     });
-
-    // Also check URL for errors
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const error = hashParams.get('error');
-    const errorDescription = hashParams.get('error_description');
-    
-    if (error) {
-      setStatus('error');
-      setMessage(errorDescription || 'Došlo je do greške prilikom autentifikacije.');
-      setTimeout(() => {
-        navigate('/auth?error=' + encodeURIComponent(errorDescription || 'Greška'), { replace: true });
-      }, 3000);
-    }
 
     // Timeout fallback - if nothing happens in 10 seconds, redirect to auth
     const timeout = setTimeout(() => {
