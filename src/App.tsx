@@ -21,6 +21,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import CityPage from "./pages/CityPage";
 import ServiceCityPage from "./pages/ServiceCityPage";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/search" element={<Search />} />
             <Route path="/usluge/:categoryId" element={<ServiceCategory />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route 
               path="/dashboard" 
               element={

@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import Header from "@/components/Header";
 import { z } from "zod";
 
@@ -35,8 +36,37 @@ const Auth = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [isRateLimited, setIsRateLimited] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Track URL parameter changes
+  // Check for URL parameters (verified, error, recovery)
+  useEffect(() => {
+    const verified = searchParams.get('verified');
+    const error = searchParams.get('error');
+    const recovery = searchParams.get('recovery');
+    
+    if (verified === 'true') {
+      setSuccessMessage('Uspješno ste potvrdili email adresu! Sada se možete prijaviti.');
+      setMode('login');
+    }
+    
+    if (error) {
+      setErrorMessage(decodeURIComponent(error));
+    }
+    
+    if (recovery === 'true') {
+      setMode('reset');
+      setSuccessMessage('Unesite novu lozinku za vaš račun.');
+    }
+    
+    // Clean up URL parameters after reading them
+    if (verified || error || recovery) {
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [searchParams]);
+
+  // Track URL parameter changes for mode
   useEffect(() => {
     const modeParam = searchParams.get('mode');
     if (modeParam === 'register') {
@@ -123,6 +153,10 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Clear previous messages
+    setSuccessMessage(null);
+    setErrorMessage(null);
+    
     if (!validateLogin()) {
       toast.error("Molimo popravite greške u formi");
       return;
@@ -161,6 +195,10 @@ const Auth = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Clear previous messages
+    setSuccessMessage(null);
+    setErrorMessage(null);
+    
     if (!validateRegister()) {
       toast.error("Molimo popravite greške u formi");
       return;
@@ -172,7 +210,7 @@ const Auth = () => {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: {
           first_name: firstName,
           last_name: lastName,
@@ -229,7 +267,7 @@ const Auth = () => {
     setIsLoading(true);
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth?mode=reset`,
+      redirectTo: `${window.location.origin}/auth/callback`,
     });
 
     setIsLoading(false);
@@ -260,6 +298,24 @@ const Auth = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Success Message */}
+            {successMessage && (
+              <Alert className="mb-4 border-green-500 bg-green-50 dark:bg-green-950/50">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-700 dark:text-green-300">
+                  {successMessage}
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {/* Error Message */}
+            {errorMessage && (
+              <Alert variant="destructive" className="mb-4">
+                <XCircle className="h-4 w-4" />
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
+            
             <form onSubmit={mode === 'login' ? handleLogin : mode === 'register' ? handleRegister : handlePasswordReset} className="space-y-4">
               {/* SECURITY: Show rate limit warning */}
               {isRateLimited && (

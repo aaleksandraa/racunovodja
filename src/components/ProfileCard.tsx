@@ -114,6 +114,12 @@ const ProfileCard = ({ profile }: ProfileCardProps) => {
         </div>
 
         <div className="space-y-3 text-sm flex-1">
+          {(profile.business_city?.name || profile.personal_city?.name) && (
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <MapPin className="h-4 w-4 flex-shrink-0" />
+              <span className="font-medium">{profile.business_city?.name || profile.personal_city?.name}</span>
+            </div>
+          )}
           {profile.phone && (
             <div className="flex items-center gap-3 text-muted-foreground">
               <Phone className="h-4 w-4 flex-shrink-0" />
