@@ -11,34 +11,34 @@ const AuthCallback = () => {
   const [message, setMessage] = useState('Obrada autentifikacije...');
 
   useEffect(() => {
+    // Check the URL hash immediately to determine if this is email confirmation
+    const fullHash = window.location.hash;
+    const urlHash = fullHash.toLowerCase();
+    console.log('AuthCallback - URL hash:', fullHash);
+    
+    // Check if URL contains email confirmation indicators
+    const isEmailConfirmationUrl = urlHash.includes('type=signup') || 
+                                   urlHash.includes('type=email') ||
+                                   urlHash.includes('type=magiclink') ||
+                                   urlHash.includes('type=recovery');
+    
+    console.log('AuthCallback - Is email confirmation URL:', isEmailConfirmationUrl);
+    
     // Listen for auth state changes - this catches when Supabase processes the token
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event, session?.user?.email);
+      console.log('Auth event:', event, 'User:', session?.user?.email);
+      console.log('Email confirmed at:', session?.user?.email_confirmed_at);
       
       if (event === 'SIGNED_IN' && session) {
-        // User just confirmed email and got signed in
-        // SECURITY: Verify this is actually a new email confirmation by checking:
-        // 1. The URL contains type=signup or type=email (from Supabase)
-        // 2. The email was confirmed very recently (within last 60 seconds)
-        const urlHash = window.location.hash.toLowerCase();
-        const isEmailConfirmation = urlHash.includes('type=signup') || 
-                                    urlHash.includes('type=email') ||
-                                    urlHash.includes('type=magiclink');
-        
-        // Check if email was confirmed recently (within 60 seconds)
-        const emailConfirmedAt = session.user.email_confirmed_at 
-          ? new Date(session.user.email_confirmed_at).getTime() 
-          : 0;
-        const now = Date.now();
-        const isRecentConfirmation = (now - emailConfirmedAt) < 60000; // 60 seconds
-        
-        if (isEmailConfirmation && isRecentConfirmation) {
-          // This is a legitimate email confirmation
+        // If we came here from an email link, treat it as email confirmation
+        // The URL type parameter tells us the type of link that was clicked
+        if (isEmailConfirmationUrl && !urlHash.includes('type=recovery')) {
+          // This is email confirmation
+          console.log('Processing as email confirmation');
           setStatus('success');
           setMessage('Email adresa je uspješno potvrđena!');
           
           // SECURITY: Use sessionStorage instead of URL params to pass verification status
-          // This prevents URL manipulation attacks
           sessionStorage.setItem('email_verified', 'true');
           
           // Wait a moment to show success, then sign out and redirect
