@@ -23,6 +23,7 @@ export const useProfiles = (filters?: {
           latitude,
           longitude,
           business_city_id,
+          business_street,
           email,
           phone,
           website,
@@ -32,7 +33,8 @@ export const useProfiles = (filters?: {
           business_type,
           years_experience,
           works_online,
-          has_physical_office
+          has_physical_office,
+          business_city:cities!public_profiles_business_city_id_fkey(name, postal_code)
         `)
         .eq("is_active", true)
         .eq("registration_completed", true);

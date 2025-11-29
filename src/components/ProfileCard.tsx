@@ -102,24 +102,12 @@ const ProfileCard = ({ profile }: ProfileCardProps) => {
               Nedostupan
             </Badge>
           )}
-          {profile.works_online && (
-            <Badge variant="secondary" className="text-xs px-3 py-1">Online</Badge>
-          )}
-          {profile.has_physical_office && (
-            <Badge variant="secondary" className="text-xs px-3 py-1">Fizička kancelarija</Badge>
-          )}
           {profile.years_experience > 0 && (
             <Badge variant="outline" className="text-xs px-3 py-1">{profile.years_experience} god. iskustva</Badge>
           )}
         </div>
 
         <div className="space-y-3 text-sm flex-1">
-          {(profile.business_city?.name || profile.personal_city?.name) && (
-            <div className="flex items-center gap-3 text-muted-foreground">
-              <MapPin className="h-4 w-4 flex-shrink-0" />
-              <span className="font-medium">{profile.business_city?.name || profile.personal_city?.name}</span>
-            </div>
-          )}
           {profile.phone && (
             <div className="flex items-center gap-3 text-muted-foreground">
               <Phone className="h-4 w-4 flex-shrink-0" />
@@ -138,6 +126,16 @@ const ProfileCard = ({ profile }: ProfileCardProps) => {
               <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary truncate font-medium transition-colors">
                 Web stranica
               </a>
+            </div>
+          )}
+          {(profile.business_street || profile.business_city?.name) && (
+            <div className="flex items-start gap-3 text-muted-foreground">
+              <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
+              <span className="font-medium">
+                {profile.business_street && `${profile.business_street}, `}
+                {profile.business_city?.name}
+                {profile.business_city?.postal_code && ` ${profile.business_city.postal_code}`}
+              </span>
             </div>
           )}
         </div>

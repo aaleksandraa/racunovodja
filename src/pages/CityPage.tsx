@@ -64,16 +64,31 @@ const CityPage = () => {
           latitude,
           longitude,
           business_city_id,
+          business_street,
           has_physical_office,
           works_online,
-          years_experience
+          years_experience,
+          license_type,
+          is_license_verified,
+          accepting_new_clients,
+          email,
+          phone,
+          website
         `)
         .eq("business_city_id", city.id)
         .eq("is_active", true)
         .eq("registration_completed", true);
 
       if (error) throw error;
-      return data || [];
+      
+      // Add city info to each profile for ProfileCard
+      return (data || []).map((profile: any) => ({
+        ...profile,
+        business_city: {
+          name: city.name,
+          postal_code: city.postal_code
+        }
+      }));
     },
     enabled: !!city?.id,
   });

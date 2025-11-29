@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [heroGradient, setHeroGradient] = useState("");
+  const [visibleProfiles, setVisibleProfiles] = useState(3);
 
   const { data: profiles = [], isLoading: profilesLoading } = useQuery({
     queryKey: ["featured-profiles"],
@@ -38,7 +39,9 @@ const Index = () => {
           has_physical_office,
           license_type,
           is_license_verified,
-          accepting_new_clients
+          accepting_new_clients,
+          business_street,
+          business_city:cities!profiles_business_city_id_fkey(name, postal_code)
         `)
         .eq('is_active', true)
         .eq('registration_completed', true)
@@ -319,13 +322,23 @@ const Index = () => {
           ) : profiles.length > 0 ? (
             <>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                {profiles.map((profile) => (
+                {profiles.slice(0, visibleProfiles).map((profile) => (
                   <ProfileCard key={profile.id} profile={profile} />
                 ))}
               </div>
               
               <div className="mt-12 flex gap-4 justify-center flex-wrap">
-                <Link to="/search">
+                {visibleProfiles < profiles.length && (
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="font-semibold"
+                    onClick={() => setVisibleProfiles(prev => Math.min(prev + 3, profiles.length))}
+                  >
+                    Prikaži više ({profiles.length - visibleProfiles} preostalo)
+                  </Button>
+                )}
+                <Link to="/pretraga">
                   <Button size="lg" variant="default" className="font-semibold">
                     <Search className="h-5 w-5 mr-2" />
                     Pretraži sve profile

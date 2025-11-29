@@ -55,6 +55,7 @@ const Search = () => {
           company_name,
           business_type,
           business_city_id,
+          business_street,
           short_description,
           profile_image_url,
           slug,
@@ -68,7 +69,8 @@ const Search = () => {
           longitude,
           accepting_new_clients,
           is_license_verified,
-          license_type
+          license_type,
+          business_city:cities!profiles_business_city_id_fkey(name, postal_code)
         `)
         .eq('is_active', true)
         .eq('registration_completed', true);
