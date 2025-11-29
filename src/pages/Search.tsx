@@ -238,8 +238,8 @@ const Search = () => {
       </section>
 
       {/* Results Section */}
-      <section className="py-16">
-        <div className="container max-w-7xl">
+      <section className="py-16 px-1 sm:px-4">
+        <div className="container max-w-7xl px-2 sm:px-0">
           <div className="mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-3xl font-bold mb-3 tracking-tight">
@@ -287,7 +287,7 @@ const Search = () => {
             </div>
           ) : profiles.length > 0 ? (
             <>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-12">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8 mb-12">
                 {currentProfiles.map((profile) => (
                   <ProfileCard key={profile.id} profile={profile} />
                 ))}

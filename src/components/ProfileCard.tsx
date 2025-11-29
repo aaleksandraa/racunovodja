@@ -20,22 +20,22 @@ const ProfileCard = ({ profile }: ProfileCardProps) => {
   
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 animate-fade-in h-full flex flex-col border-border/50">
-      <CardHeader className="pb-6 space-y-4">
-        <div className="flex items-start gap-5">
+      <CardHeader className="pb-4 sm:pb-6 space-y-3 sm:space-y-4 px-3 sm:px-6 pt-3 sm:pt-6">
+        <div className="flex items-start gap-3 sm:gap-5">
           {profile.profile_image_url ? (
             <img 
               src={profile.profile_image_url} 
               alt={profile.company_name || `${profile.first_name} ${profile.last_name}`}
-              className="h-20 w-20 rounded-lg object-cover flex-shrink-0 border border-border"
+              className="h-14 w-14 sm:h-20 sm:w-20 rounded-lg object-cover flex-shrink-0 border border-border"
             />
           ) : (
-            <div className="h-20 w-20 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-2xl font-bold flex-shrink-0">
+            <div className="h-14 w-14 sm:h-20 sm:w-20 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-lg sm:text-2xl font-bold flex-shrink-0">
               {profile.first_name?.[0]}{profile.last_name?.[0]}
             </div>
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5">
-              <h3 className="text-xl font-bold leading-tight">
+              <h3 className="text-base sm:text-xl font-bold leading-tight">
                 {profile.company_name || `${profile.first_name} ${profile.last_name}`}
               </h3>
               {verificationMode === 'checkmark' && (profile as any).is_license_verified && (
@@ -88,50 +88,50 @@ const ProfileCard = ({ profile }: ProfileCardProps) => {
         )}
       </CardHeader>
       
-      <CardContent className="space-y-5 flex-1 flex flex-col">
-        <div className="flex flex-wrap gap-2">
+      <CardContent className="space-y-4 sm:space-y-5 flex-1 flex flex-col px-3 sm:px-6 pb-3 sm:pb-6">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
           {(profile as any).accepting_new_clients !== false && (
-            <Badge variant="secondary" className="text-xs px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+            <Badge variant="secondary" className="text-xs px-2 sm:px-3 py-0.5 sm:py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
               <UserCheck className="h-3 w-3 mr-1" />
               Dostupan
             </Badge>
           )}
           {(profile as any).accepting_new_clients === false && (
-            <Badge variant="secondary" className="text-xs px-3 py-1 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
+            <Badge variant="secondary" className="text-xs px-2 sm:px-3 py-0.5 sm:py-1 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
               <UserX className="h-3 w-3 mr-1" />
               Nedostupan
             </Badge>
           )}
           {profile.years_experience > 0 && (
-            <Badge variant="outline" className="text-xs px-3 py-1">{profile.years_experience} god. iskustva</Badge>
+            <Badge variant="outline" className="text-xs px-2 sm:px-3 py-0.5 sm:py-1">{profile.years_experience} god. iskustva</Badge>
           )}
         </div>
 
-        <div className="space-y-3 text-sm flex-1">
+        <div className="space-y-2 sm:space-y-3 text-sm flex-1">
           {profile.phone && (
-            <div className="flex items-center gap-3 text-muted-foreground">
+            <div className="flex items-center gap-2 sm:gap-3 text-muted-foreground">
               <Phone className="h-4 w-4 flex-shrink-0" />
-              <span className="font-medium">{profile.phone}</span>
+              <span className="font-medium text-xs sm:text-sm">{profile.phone}</span>
             </div>
           )}
           {profile.email && (
-            <div className="flex items-center gap-3 text-muted-foreground">
+            <div className="flex items-center gap-2 sm:gap-3 text-muted-foreground">
               <Mail className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate font-medium">{profile.email}</span>
+              <span className="truncate font-medium text-xs sm:text-sm">{profile.email}</span>
             </div>
           )}
           {profile.website && (
-            <div className="flex items-center gap-3 text-muted-foreground">
+            <div className="flex items-center gap-2 sm:gap-3 text-muted-foreground">
               <Globe className="h-4 w-4 flex-shrink-0" />
-              <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary truncate font-medium transition-colors">
+              <a href={profile.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary truncate font-medium transition-colors text-xs sm:text-sm">
                 Web stranica
               </a>
             </div>
           )}
           {(profile.business_street || profile.business_city?.name) && (
-            <div className="flex items-start gap-3 text-muted-foreground">
+            <div className="flex items-start gap-2 sm:gap-3 text-muted-foreground">
               <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
-              <span className="font-medium">
+              <span className="font-medium text-xs sm:text-sm">
                 {profile.business_street && `${profile.business_street}, `}
                 {profile.business_city?.name}
                 {profile.business_city?.postal_code && ` ${profile.business_city.postal_code}`}
@@ -141,7 +141,7 @@ const ProfileCard = ({ profile }: ProfileCardProps) => {
         </div>
 
         <Link to={`/profil/${profile.slug}`} className="mt-auto">
-          <Button className="w-full font-semibold" variant="outline" size="lg">
+          <Button className="w-full font-semibold text-sm" variant="outline" size="default">
             Pogledaj profil <ExternalLink className="ml-2 h-4 w-4" />
           </Button>
         </Link>

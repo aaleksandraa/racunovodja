@@ -168,21 +168,97 @@ const CityPage = () => {
     const markers = L.markerClusterGroup();
 
     profilesWithCoords.forEach((profile) => {
-      const marker = L.marker([profile.latitude!, profile.longitude!]);
-      
+      const customIcon = L.divIcon({
+        className: 'custom-marker',
+        html: `
+          <div style="
+            position: relative;
+            width: 40px;
+            height: 40px;
+          ">
+            <div style="
+              position: absolute;
+              top: 0;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 32px;
+              height: 32px;
+              background: linear-gradient(135deg, hsl(222.2 47.4% 11.2%) 0%, hsl(217.2 32.6% 17.5%) 100%);
+              border-radius: 50% 50% 50% 0;
+              transform: translateX(-50%) rotate(-45deg);
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+              border: 3px solid white;
+            "></div>
+            <div style="
+              position: absolute;
+              top: 6px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 12px;
+              height: 12px;
+              background: white;
+              border-radius: 50%;
+              z-index: 1;
+            "></div>
+          </div>
+        `,
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40]
+      });
+
+      const displayName = profile.company_name || `${profile.first_name} ${profile.last_name}`;
+      const licenseText = profile.license_type === 'certified_accountant' 
+        ? 'Certifikovani računovođa' 
+        : profile.license_type === 'certified_technician'
+          ? 'Certifikovani računovodstveni tehničar'
+          : '';
+
       const popupContent = `
-        <div class="p-2">
-          <h3 class="font-semibold text-sm mb-1">
-            ${profile.company_name || `${profile.first_name} ${profile.last_name}`}
-          </h3>
-          <p class="text-xs text-muted-foreground mb-2">${profile.short_description || ''}</p>
-          <a href="/profil/${profile.slug}" class="text-xs text-primary hover:underline">
-            Pogledaj profil →
-          </a>
+        <div style="padding: 12px; font-family: system-ui; min-width: 250px; max-width: 300px;">
+          <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px; color: hsl(222.2 47.4% 11.2%);">
+            ${displayName}
+          </div>
+          ${licenseText ? `
+            <div style="font-size: 12px; color: ${profile.is_license_verified ? '#2563eb' : '#6b7280'}; margin-bottom: 8px;">
+              ${licenseText}${profile.is_license_verified ? ' ✓' : ''}
+            </div>
+          ` : ''}
+          ${profile.short_description ? `
+            <p style="font-size: 13px; color: #6b7280; margin-bottom: 10px; line-height: 1.4;">${profile.short_description}</p>
+          ` : ''}
+          
+          <div style="margin-bottom: 10px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
+            <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">KONTAKT</div>
+            ${profile.phone ? `<div style="font-size: 13px; margin-bottom: 4px;">📞 ${profile.phone}</div>` : ''}
+            ${profile.email ? `<div style="font-size: 13px; margin-bottom: 4px;">✉️ ${profile.email}</div>` : ''}
+            ${profile.website ? `<div style="font-size: 13px;"><a href="${profile.website}" target="_blank" style="color: #3b82f6; text-decoration: none;">🌐 Web stranica</a></div>` : ''}
+          </div>
+          
+          ${profile.business_street || city.name ? `
+            <div style="margin-bottom: 10px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
+              <div style="font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 6px;">ADRESA</div>
+              <div style="font-size: 13px;">📍 ${profile.business_street ? profile.business_street + ', ' : ''}${city.name} ${city.postal_code || ''}</div>
+            </div>
+          ` : ''}
+          
+          <a href="/profil/${profile.slug}" style="
+            display: block;
+            text-align: center;
+            padding: 8px 16px;
+            background: hsl(222.2 47.4% 11.2%);
+            color: white;
+            border-radius: 6px;
+            font-size: 13px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 12px;
+          ">Pogledaj kompletan profil</a>
         </div>
       `;
       
-      marker.bindPopup(popupContent);
+      const marker = L.marker([profile.latitude!, profile.longitude!], { icon: customIcon });
+      marker.bindPopup(popupContent, { maxWidth: 320 });
       markers.addLayer(marker);
     });
 
@@ -249,8 +325,8 @@ const CityPage = () => {
         <Header />
         
         {/* Hero Section */}
-        <section className="bg-gradient-to-b from-muted/50 to-background py-12 px-4">
-          <div className="container mx-auto max-w-6xl">
+        <section className="bg-gradient-to-b from-muted/50 to-background py-12 px-1 sm:px-4">
+          <div className="container mx-auto max-w-6xl px-2 sm:px-0">
             {/* Breadcrumbs for SEO */}
             <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-4" aria-label="Breadcrumb">
               <a href="/" className="hover:text-primary">Početna</a>
@@ -283,8 +359,8 @@ const CityPage = () => {
 
         {/* Available Services Section */}
         {availableServices && availableServices.length > 0 && (
-          <section className="py-12 px-4 bg-muted/30">
-            <div className="container mx-auto max-w-6xl">
+          <section className="py-12 px-1 sm:px-4 bg-muted/30">
+            <div className="container mx-auto max-w-6xl px-2 sm:px-0">
               <h2 className="text-3xl font-bold mb-6">Dostupne usluge u {cityName}</h2>
               <p className="text-muted-foreground mb-8">
                 Pregled usluga koje nude knjigovođe u gradu {cityName}. Kliknite na uslugu da vidite profesionalce specijalizovane za tu oblast.
@@ -318,10 +394,10 @@ const CityPage = () => {
 
         {/* Profiles Grid */}
         {profiles && profiles.length > 0 && (
-          <section className="py-12 px-4">
-            <div className="container mx-auto max-w-6xl">
+          <section className="py-12 px-1 sm:px-4">
+            <div className="container mx-auto max-w-6xl px-2 sm:px-0">
               <h2 className="text-3xl font-bold mb-6">Svi Računovođe i Knjigovođe u {cityName}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-12">
                 {profiles.map((profile) => (
                   <ProfileCard key={profile.id} profile={profile} />
                 ))}
@@ -340,8 +416,8 @@ const CityPage = () => {
         )}
 
         {profiles?.length === 0 && (
-          <section className="py-12 px-4">
-            <div className="container mx-auto max-w-6xl text-center">
+          <section className="py-12 px-1 sm:px-4">
+            <div className="container mx-auto max-w-6xl text-center px-2 sm:px-0">
               <p className="text-muted-foreground mb-4">
                 Trenutno nema registriranih profesionalaca u ovom gradu.
               </p>
@@ -356,8 +432,8 @@ const CityPage = () => {
         )}
 
         {/* FAQ Section for SEO */}
-        <section className="py-12 px-4 bg-muted/20">
-          <div className="container mx-auto max-w-6xl">
+        <section className="py-12 px-1 sm:px-4 bg-muted/20">
+            <div className="container mx-auto max-w-6xl px-2 sm:px-0">
             <h2 className="text-2xl font-bold mb-8">Često Postavljana Pitanja - Računovođe {cityName}</h2>
             <div className="space-y-6">
               <div>
