@@ -63,34 +63,67 @@ const AuthCallback = () => {
       }, 2000);
     };
     
-    // If we have a code, we need to exchange it for a session (PKCE flow)
-    if (hasCode && isEmailConfirmation) {
-      const exchangeCode = async () => {
-        console.log('Exchanging code for session...');
+    // If we have a code parameter, Supabase needs to exchange it
+    // But PKCE requires the code_verifier from the original browser session
+    // If code_verifier is missing (different browser/tab), the code exchange will fail
+    // In that case, we should inform the user that email was verified but they need to login
+    if (hasCode) {
+      const tryExchangeCode = async () => {
+        console.log('Attempting code exchange...');
         
-        // Supabase client automatically handles the code exchange when we call getSession
-        // or when we use exchangeCodeForSession
-        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-        
-        console.log('Code exchange result:', data?.user?.email, exchangeError);
-        
-        if (exchangeError) {
-          console.error('Code exchange error:', exchangeError);
-          setStatus('error');
-          setMessage('Greška pri verifikaciji: ' + exchangeError.message);
-          setTimeout(() => {
-            navigate('/auth', { replace: true });
-          }, 3000);
-          return;
-        }
-        
-        if (data?.session) {
-          handleEmailConfirmation();
+        try {
+          // First check if there's already a session (code might have been auto-processed)
+          const { data: { session: existingSession } } = await supabase.auth.getSession();
+          
+          if (existingSession?.user) {
+            console.log('Session already exists:', existingSession.user.email);
+            if (isEmailConfirmation) {
+              handleEmailConfirmation();
+            }
+            return;
+          }
+          
+          // Try to exchange the code - this will only work if code_verifier exists
+          const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (exchangeError) {
+            console.log('Code exchange failed (expected if different browser):', exchangeError.message);
+            
+            // If PKCE fails, the email IS still verified on Supabase's side
+            // We just can't create a session. Show success and redirect to login.
+            if (isEmailConfirmation) {
+              setStatus('success');
+              setMessage('Email adresa je uspješno potvrđena!');
+              sessionStorage.setItem('email_verified', 'true');
+              
+              setTimeout(() => {
+                navigate('/auth', { replace: true });
+              }, 2000);
+            }
+            return;
+          }
+          
+          console.log('Code exchange successful:', data?.user?.email);
+          if (data?.session && isEmailConfirmation) {
+            handleEmailConfirmation();
+          }
+        } catch (err) {
+          console.error('Unexpected error:', err);
+          // Still show success for email confirmation since the email IS verified
+          if (isEmailConfirmation) {
+            setStatus('success');
+            setMessage('Email adresa je uspješno potvrđena!');
+            sessionStorage.setItem('email_verified', 'true');
+            
+            setTimeout(() => {
+              navigate('/auth', { replace: true });
+            }, 2000);
+          }
         }
       };
       
-      exchangeCode();
-      return; // Don't set up auth listener if we're handling PKCE
+      tryExchangeCode();
+      return;
     }
     
     // For hash-based flow, check session
