@@ -11,23 +11,25 @@ const AuthCallback = () => {
   const [message, setMessage] = useState('Obrada autentifikacije...');
 
   useEffect(() => {
-    // Check the URL hash immediately to determine if this is email confirmation
+    // Check the URL hash immediately
     const fullHash = window.location.hash;
-    const urlHash = fullHash.toLowerCase();
+    console.log('AuthCallback - Full URL:', window.location.href);
     console.log('AuthCallback - URL hash:', fullHash);
     
-    // Check if URL contains email confirmation indicators
-    const isEmailConfirmationUrl = urlHash.includes('type=signup') || 
-                                   urlHash.includes('type=email') ||
-                                   urlHash.includes('type=magiclink');
-    const isPasswordRecovery = urlHash.includes('type=recovery');
+    // If there's an access_token in the URL, this is coming from an email link
+    const hasAccessToken = fullHash.includes('access_token=');
+    const isPasswordRecovery = fullHash.toLowerCase().includes('type=recovery');
     
-    console.log('AuthCallback - Is email confirmation URL:', isEmailConfirmationUrl);
+    // Any callback with access_token that isn't password recovery is email confirmation
+    const isEmailConfirmation = hasAccessToken && !isPasswordRecovery;
+    
+    console.log('AuthCallback - Has access token:', hasAccessToken);
     console.log('AuthCallback - Is password recovery:', isPasswordRecovery);
+    console.log('AuthCallback - Is email confirmation:', isEmailConfirmation);
     
     // Function to handle email confirmation
     const handleEmailConfirmation = async () => {
-      console.log('Handling email confirmation');
+      console.log('Handling email confirmation - showing success');
       setStatus('success');
       setMessage('Email adresa je uspješno potvrđena!');
       
@@ -41,38 +43,34 @@ const AuthCallback = () => {
       }, 2000);
     };
     
-    // If this is email confirmation URL, check session after a brief delay
-    // (Supabase needs time to process the token from the URL)
-    if (isEmailConfirmationUrl && !isPasswordRecovery) {
-      // Give Supabase a moment to process the hash tokens
-      const checkSession = async () => {
-        // Wait for Supabase to process the URL hash
-        await new Promise(resolve => setTimeout(resolve, 500));
+    // If this looks like email confirmation, process it
+    if (isEmailConfirmation) {
+      // Give Supabase a moment to process the hash tokens, then check session
+      const checkAndHandle = async () => {
+        // Small delay for Supabase to process
+        await new Promise(resolve => setTimeout(resolve, 300));
         
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('Session after URL processing:', session?.user?.email);
+        console.log('Session check:', session?.user?.email);
         
         if (session?.user) {
           handleEmailConfirmation();
-          return true;
         }
-        return false;
       };
       
-      checkSession();
+      checkAndHandle();
     }
     
     // Listen for auth state changes as backup
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event, 'User:', session?.user?.email);
       
-      if (event === 'SIGNED_IN' && session) {
-        // If we came here from an email confirmation link
-        if (isEmailConfirmationUrl && !isPasswordRecovery) {
-          handleEmailConfirmation();
-          return;
-        }
-        
+      if (event === 'SIGNED_IN' && session && isEmailConfirmation) {
+        handleEmailConfirmation();
+        return;
+      }
+      
+      if (event === 'SIGNED_IN' && session && !isEmailConfirmation) {
         // Regular sign in - check profile and redirect
         const { data: profile } = await supabase
           .from('profiles')
