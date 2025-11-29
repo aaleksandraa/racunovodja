@@ -19,37 +19,61 @@ const AuthCallback = () => {
     // Check if URL contains email confirmation indicators
     const isEmailConfirmationUrl = urlHash.includes('type=signup') || 
                                    urlHash.includes('type=email') ||
-                                   urlHash.includes('type=magiclink') ||
-                                   urlHash.includes('type=recovery');
+                                   urlHash.includes('type=magiclink');
+    const isPasswordRecovery = urlHash.includes('type=recovery');
     
     console.log('AuthCallback - Is email confirmation URL:', isEmailConfirmationUrl);
+    console.log('AuthCallback - Is password recovery:', isPasswordRecovery);
     
-    // Listen for auth state changes - this catches when Supabase processes the token
+    // Function to handle email confirmation
+    const handleEmailConfirmation = async () => {
+      console.log('Handling email confirmation');
+      setStatus('success');
+      setMessage('Email adresa je uspješno potvrđena!');
+      
+      // SECURITY: Use sessionStorage instead of URL params
+      sessionStorage.setItem('email_verified', 'true');
+      
+      // Wait a moment to show success, then sign out and redirect
+      setTimeout(async () => {
+        await supabase.auth.signOut();
+        navigate('/auth', { replace: true });
+      }, 2000);
+    };
+    
+    // If this is email confirmation URL, check session after a brief delay
+    // (Supabase needs time to process the token from the URL)
+    if (isEmailConfirmationUrl && !isPasswordRecovery) {
+      // Give Supabase a moment to process the hash tokens
+      const checkSession = async () => {
+        // Wait for Supabase to process the URL hash
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Session after URL processing:', session?.user?.email);
+        
+        if (session?.user) {
+          handleEmailConfirmation();
+          return true;
+        }
+        return false;
+      };
+      
+      checkSession();
+    }
+    
+    // Listen for auth state changes as backup
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event, 'User:', session?.user?.email);
-      console.log('Email confirmed at:', session?.user?.email_confirmed_at);
       
       if (event === 'SIGNED_IN' && session) {
-        // If we came here from an email link, treat it as email confirmation
-        // The URL type parameter tells us the type of link that was clicked
-        if (isEmailConfirmationUrl && !urlHash.includes('type=recovery')) {
-          // This is email confirmation
-          console.log('Processing as email confirmation');
-          setStatus('success');
-          setMessage('Email adresa je uspješno potvrđena!');
-          
-          // SECURITY: Use sessionStorage instead of URL params to pass verification status
-          sessionStorage.setItem('email_verified', 'true');
-          
-          // Wait a moment to show success, then sign out and redirect
-          setTimeout(async () => {
-            await supabase.auth.signOut();
-            navigate('/auth', { replace: true });
-          }, 2000);
+        // If we came here from an email confirmation link
+        if (isEmailConfirmationUrl && !isPasswordRecovery) {
+          handleEmailConfirmation();
           return;
         }
         
-        // Regular sign in (not email confirmation) - check profile and redirect
+        // Regular sign in - check profile and redirect
         const { data: profile } = await supabase
           .from('profiles')
           .select('registration_completed')
