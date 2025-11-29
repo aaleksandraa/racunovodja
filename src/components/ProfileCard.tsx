@@ -19,8 +19,8 @@ const ProfileCard = ({ profile }: ProfileCardProps) => {
     : 'Certifikovani računovodstveni tehničar';
   
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 animate-fade-in h-full flex flex-col border-border/50">
-      <CardHeader className="pb-4 sm:pb-6 space-y-3 sm:space-y-4 px-3 sm:px-6 pt-3 sm:pt-6">
+    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 animate-fade-in h-full flex flex-col border-2 border-border shadow-sm">
+      <CardHeader className="pb-4 sm:pb-6 space-y-3 sm:space-y-4 px-3 sm:px-6 pt-5 sm:pt-6">
         <div className="flex items-start gap-3 sm:gap-5">
           {profile.profile_image_url ? (
             <img 
@@ -88,7 +88,7 @@ const ProfileCard = ({ profile }: ProfileCardProps) => {
         )}
       </CardHeader>
       
-      <CardContent className="space-y-4 sm:space-y-5 flex-1 flex flex-col px-3 sm:px-6 pb-3 sm:pb-6">
+      <CardContent className="space-y-4 sm:space-y-5 flex-1 flex flex-col px-3 sm:px-6 pb-5 sm:pb-6">
         <div className="flex flex-wrap gap-1.5 sm:gap-2">
           {(profile as any).accepting_new_clients !== false && (
             <Badge variant="secondary" className="text-xs px-2 sm:px-3 py-0.5 sm:py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">

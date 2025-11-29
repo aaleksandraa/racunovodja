@@ -227,7 +227,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
             {mainCategories.map((category, index) => (
               <Link key={category.id} to={`/usluge/${category.id}`}>
                 <Card className="h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer border-border/50 group animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
@@ -321,7 +321,7 @@ const Index = () => {
             </div>
           ) : profiles.length > 0 ? (
             <>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                 {profiles.slice(0, visibleProfiles).map((profile) => (
                   <ProfileCard key={profile.id} profile={profile} />
                 ))}

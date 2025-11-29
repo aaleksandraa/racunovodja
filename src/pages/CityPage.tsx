@@ -397,7 +397,7 @@ const CityPage = () => {
           <section className="py-12 px-1 sm:px-4">
             <div className="container mx-auto max-w-6xl px-2 sm:px-0">
               <h2 className="text-3xl font-bold mb-6">Svi Računovođe i Knjigovođe u {cityName}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-6 mb-12">
                 {profiles.map((profile) => (
                   <ProfileCard key={profile.id} profile={profile} />
                 ))}

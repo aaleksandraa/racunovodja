@@ -287,7 +287,7 @@ const Search = () => {
             </div>
           ) : profiles.length > 0 ? (
             <>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8 mb-12">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-6 lg:gap-8 mb-12">
                 {currentProfiles.map((profile) => (
                   <ProfileCard key={profile.id} profile={profile} />
                 ))}
