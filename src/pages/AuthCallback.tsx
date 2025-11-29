@@ -1,155 +1,136 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import Header from "@/components/Header";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [message, setMessage] = useState('Obrada autentifikacije...');
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      try {
-        // Get URL hash parameters (Supabase uses hash for tokens)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-        const type = hashParams.get('type') || searchParams.get('type');
-        const error = hashParams.get('error') || searchParams.get('error');
-        const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
-
-        // Handle errors from Supabase
-        if (error) {
-          console.error('Auth callback error:', error, errorDescription);
-          setStatus('error');
-          setMessage(errorDescription || 'Došlo je do greške prilikom autentifikacije.');
-          setTimeout(() => {
-            navigate('/auth?error=' + encodeURIComponent(errorDescription || 'Greška prilikom autentifikacije'));
-          }, 2000);
-          return;
-        }
-
-        // Handle email confirmation (signup, email_change, recovery)
-        if (type === 'signup' || type === 'email_change' || type === 'magiclink') {
-          setMessage('Potvrđujemo vašu email adresu...');
-          
-          // If we have tokens, set the session first
-          if (accessToken && refreshToken) {
-            const { error: sessionError } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken
-            });
-            
-            if (sessionError) {
-              console.error('Session error:', sessionError);
-              setStatus('error');
-              setMessage('Greška prilikom potvrde. Link je možda istekao.');
-              setTimeout(() => {
-                navigate('/auth?error=' + encodeURIComponent('Link za potvrdu je istekao. Molimo registrujte se ponovo.'));
-              }, 2500);
-              return;
-            }
-          }
-
-          // Sign out the user so they have to log in manually
-          await supabase.auth.signOut();
-          
+    // Listen for auth state changes - this catches when Supabase processes the token
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth event:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' && session) {
+        // User just confirmed email and got signed in
+        // SECURITY: Verify this is actually a new email confirmation by checking:
+        // 1. The URL contains type=signup or type=email (from Supabase)
+        // 2. The email was confirmed very recently (within last 60 seconds)
+        const urlHash = window.location.hash.toLowerCase();
+        const isEmailConfirmation = urlHash.includes('type=signup') || 
+                                    urlHash.includes('type=email') ||
+                                    urlHash.includes('type=magiclink');
+        
+        // Check if email was confirmed recently (within 60 seconds)
+        const emailConfirmedAt = session.user.email_confirmed_at 
+          ? new Date(session.user.email_confirmed_at).getTime() 
+          : 0;
+        const now = Date.now();
+        const isRecentConfirmation = (now - emailConfirmedAt) < 60000; // 60 seconds
+        
+        if (isEmailConfirmation && isRecentConfirmation) {
+          // This is a legitimate email confirmation
           setStatus('success');
           setMessage('Email adresa je uspješno potvrđena!');
           
-          // Redirect to login with success message
-          setTimeout(() => {
-            navigate('/auth?verified=true');
-          }, 1500);
+          // SECURITY: Use sessionStorage instead of URL params to pass verification status
+          // This prevents URL manipulation attacks
+          sessionStorage.setItem('email_verified', 'true');
+          
+          // Wait a moment to show success, then sign out and redirect
+          setTimeout(async () => {
+            await supabase.auth.signOut();
+            navigate('/auth', { replace: true });
+          }, 2000);
           return;
         }
-
-        // Handle password recovery
-        if (type === 'recovery') {
-          setMessage('Preusmjeravanje na stranicu za promjenu lozinke...');
-          
-          if (accessToken && refreshToken) {
-            await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken
-            });
-          }
-          
-          // Redirect to password reset page
-          navigate('/auth?mode=reset&recovery=true');
-          return;
-        }
-
-        // For other cases, check if user is authenticated
-        const { data: { session } } = await supabase.auth.getSession();
         
-        if (session) {
-          // Check if user has completed registration
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('registration_completed')
-            .eq('id', session.user.id)
-            .single();
+        // Regular sign in (not email confirmation) - check profile and redirect
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('registration_completed')
+          .eq('id', session.user.id)
+          .single();
 
-          if (profile?.registration_completed) {
-            navigate('/dashboard');
-          } else {
-            navigate('/registracija');
-          }
+        if (profile?.registration_completed) {
+          navigate('/dashboard', { replace: true });
         } else {
-          // No session, redirect to login
-          navigate('/auth');
+          navigate('/registracija', { replace: true });
         }
-      } catch (error) {
-        console.error('Auth callback error:', error);
-        setStatus('error');
-        setMessage('Došlo je do neočekivane greške.');
-        setTimeout(() => {
-          navigate('/auth?error=' + encodeURIComponent('Došlo je do greške. Molimo pokušajte ponovo.'));
-        }, 2000);
+      } else if (event === 'PASSWORD_RECOVERY') {
+        // User clicked password recovery link
+        navigate('/auth?mode=reset&recovery=true', { replace: true });
+      } else if (event === 'SIGNED_OUT') {
+        // Already handled above
       }
-    };
+    });
 
-    handleAuthCallback();
-  }, [navigate, searchParams]);
+    // Also check URL for errors
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const error = hashParams.get('error');
+    const errorDescription = hashParams.get('error_description');
+    
+    if (error) {
+      setStatus('error');
+      setMessage(errorDescription || 'Došlo je do greške prilikom autentifikacije.');
+      setTimeout(() => {
+        navigate('/auth?error=' + encodeURIComponent(errorDescription || 'Greška'), { replace: true });
+      }, 3000);
+    }
+
+    // Timeout fallback - if nothing happens in 10 seconds, redirect to auth
+    const timeout = setTimeout(() => {
+      if (status === 'processing') {
+        navigate('/auth', { replace: true });
+      }
+    }, 10000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, [navigate, status]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-4">
-            {status === 'processing' && (
-              <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
-            )}
-            {status === 'success' && (
-              <CheckCircle className="h-12 w-12 mx-auto text-green-500" />
-            )}
-            {status === 'error' && (
-              <XCircle className="h-12 w-12 mx-auto text-destructive" />
-            )}
-            <p className={`text-lg font-medium ${
-              status === 'success' ? 'text-green-600' : 
-              status === 'error' ? 'text-destructive' : 
-              'text-muted-foreground'
-            }`}>
-              {message}
-            </p>
-            {status === 'processing' && (
-              <p className="text-sm text-muted-foreground">
-                Molimo sačekajte...
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header />
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-8 pb-8">
+            <div className="text-center space-y-4">
+              {status === 'processing' && (
+                <Loader2 className="h-16 w-16 animate-spin mx-auto text-primary" />
+              )}
+              {status === 'success' && (
+                <CheckCircle className="h-16 w-16 mx-auto text-green-500" />
+              )}
+              {status === 'error' && (
+                <XCircle className="h-16 w-16 mx-auto text-destructive" />
+              )}
+              <h2 className={`text-xl font-semibold ${
+                status === 'success' ? 'text-green-600 dark:text-green-400' : 
+                status === 'error' ? 'text-destructive' : 
+                'text-foreground'
+              }`}>
+                {status === 'processing' ? 'Obrada u toku...' : 
+                 status === 'success' ? 'Uspješno!' : 'Greška'}
+              </h2>
+              <p className="text-muted-foreground">
+                {message}
               </p>
-            )}
-            {status === 'success' && (
-              <p className="text-sm text-muted-foreground">
-                Preusmjeravamo vas na stranicu za prijavu...
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              {status === 'success' && (
+                <p className="text-sm text-muted-foreground animate-pulse">
+                  Preusmjeravamo vas na stranicu za prijavu...
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

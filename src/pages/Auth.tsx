@@ -40,27 +40,30 @@ const Auth = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Check for URL parameters (verified, error, recovery)
+  // SECURITY: Use sessionStorage to pass verification status instead of URL params
   useEffect(() => {
-    const verified = searchParams.get('verified');
+    const verified = sessionStorage.getItem('email_verified');
     const error = searchParams.get('error');
     const recovery = searchParams.get('recovery');
     
     if (verified === 'true') {
       setSuccessMessage('Uspješno ste potvrdili email adresu! Sada se možete prijaviti.');
       setMode('login');
+      // Clear the flag immediately after reading
+      sessionStorage.removeItem('email_verified');
     }
     
     if (error) {
       setErrorMessage(decodeURIComponent(error));
+      // Clean up URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
     }
     
     if (recovery === 'true') {
       setMode('reset');
       setSuccessMessage('Unesite novu lozinku za vaš račun.');
-    }
-    
-    // Clean up URL parameters after reading them
-    if (verified || error || recovery) {
+      // Clean up URL
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
